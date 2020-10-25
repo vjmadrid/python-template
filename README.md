@@ -69,7 +69,7 @@ Command to run the script
 sh configure-project.sh MODULE="<module-name>" DOCKER-REGISTRY="<docker-registry-name>"
 
 # Example
-sh configure-project.sh MODULE="project-x" DOCKER-REGISTRY="docker.pkg.github.com/acme/project-x"
+sh configure-project.sh MODULE="my-project" DOCKER-REGISTRY="docker.pkg.github.com/acme/project-x"
 ```
 
 
@@ -157,11 +157,87 @@ It consists of the following elements :
 
 Execution file of a custom container to facilitate testing during development
 
+Image that provides certain tools that can help debug the container if it presents any kind of problem
+
+It includes aspects such as : bash, vim, netcat, wget, cat, find, grep, etc.
+
+It will only be used for development so size here is not a problem
+
+This image when referencing a particular fixed version both the python version and the Debian version
+
+* This is very interesting to avoid problems of incompatibility with updates
+
+Minimal images can be used (Alpine type) but care must be taken because some have incompatibility problems
+
+For example alpine uses libc instead of glibc which Python relies on
+
+
+```bash
+docker build -t "acme/python-3.9.0-buster-tools" --file="base.Dockerfile" .
+```
+
+
+
+
 
 
 ### <a name="dev.Dockerfile">dev.Dockerfile</a>
 
 Application container execution file for the DEV environment
+
+We will use the multi-stage construction capacity based on the creation of intermediate images where each of them will have an objective
+
+Thanks to this we will reduce certain stages such as the unloading of dependencies or the installation of tools
+
+Multi-Stage definition :
+
+#### builder
+
+Use the base image **python:3.9.0-slim-buster**
+
+Features :
+
+ * Prepare environment : Os version + Python version
+ * Update OS environment
+ * Download all necessary libraries that will be needed to build the application
+ * Create Virutal environment
+ * Update PIP environment
+
+
+
+ #### builder-venv
+
+Use the base image **builder**
+
+Features :
+
+ * Install dependencies in the Virtual Environment
+ * Use for Chaching 
+
+
+
+#### tester
+
+Use the base image **builder-venv**
+
+Features :
+
+ * Copy app
+ * Run Test
+
+
+
+#### runner
+
+Use the base image **tester**
+
+Features :
+
+ * Copy Virtual Environment with Dependencies
+ * Copy application tested
+ * Move to application directory
+ * Define entrypoint -> runs our application when image is started
+ * Set USER 1001 for no use root user
 
 
 

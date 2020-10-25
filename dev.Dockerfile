@@ -71,16 +71,16 @@ RUN /venv/bin/pytest
 #   * Define entrypoint -> runs our application when image is started
 #   * Set USER 1001 for no use root user
 
-FROM builder-venv AS runner
+FROM docker.pkg.github.com/acme/projectx/python-3.9.0-buster-tools:latest AS runner
 
 COPY --from=tester /venv /venv
 COPY --from=tester /app /app
 
 WORKDIR /app
 
-ENTRYPOINT ["/venv/bin/python3", "-m", "flask run"]
-USER 1001
+# ENTRYPOINT ["/venv/bin/python3", "-m", "projectx"]
+# USER 1001
 
 
-LABEL name={NAME}
-LABEL version={VERSION}
+LABEL name=projectx
+LABEL version=v1.0

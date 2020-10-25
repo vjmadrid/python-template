@@ -47,8 +47,8 @@ RESET_FORMATTING=`tput sgr0`
 
 PROJECT_NAME='python-template'
 
-DEFAULT_TEMPLATE_MODULE='example'
-DEFAULT_TEMPLATE_REGISTRY='docker.pkg.github.com/acme/example'
+DEFAULT_TEMPLATE_MODULE='projectx'
+DEFAULT_TEMPLATE_REGISTRY='docker.pkg.github.com/acme/projectx'
 
 
 
