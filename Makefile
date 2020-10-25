@@ -463,7 +463,7 @@ help:
 	@echo -e ""
 	@echo -e "Usage: make [<goal>]"
 	@echo -e ""
-	@echo -e "\t${TEXT_GREEN}info${RESET_FORMATTING}\t\t\t show ALL info"
+	@echo -e "\t${TEXT_GREEN}info${RESET_FORMATTING}\t\t\t\t show ALL info"
 	@echo -e ""
 	@$(MAKE_CMD) help-os-goals
 	@echo -e ""
@@ -535,7 +535,7 @@ info: initial-template
 # *** help-os-goals : Help OS goals ***
 help-os-goals:
 	@echo -e "OS Goals:"
-	@echo -e "\t${TEXT_GREEN}info-os${RESET_FORMATTING}\t\t\t show OS information"
+	@echo -e "\t${TEXT_GREEN}info-os${RESET_FORMATTING}\t\t\t\t show OS information"
 
 
 
@@ -581,8 +581,8 @@ info-os: initial-template
 # *** help-python-goals : Help Python goals***
 help-python-goals:
 	@echo -e "Python Goals:"
-	@echo -e "\t${TEXT_GREEN}info-python${RESET_FORMATTING}\t\t show python information"
-	@echo -e "\t${TEXT_GREEN}upgrade-pip${RESET_FORMATTING}\t\t upgrade pip"
+	@echo -e "\t${TEXT_GREEN}info-python${RESET_FORMATTING}\t\t\t show python information"
+	@echo -e "\t${TEXT_GREEN}upgrade-pip${RESET_FORMATTING}\t\t\t upgrade pip"
 
 
 
@@ -610,6 +610,12 @@ info-python: initial-template
 # **********************************
 # 		upgrade-pip
 # **********************************
+
+info-upgrade-pip-template:
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] To Upgrade pip in your local shell require manual run :"
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]\t${TEXT_GREEN}$(PACKAGE_CMD) install --upgrade $(PACKAGE_TOOL)${RESET_FORMATTING}"
 
 # *** upgrade-pip : Upgrade pip***
 upgrade-pip:
@@ -650,9 +656,9 @@ help-pyenv-goals:
 # *** help-pyenv-venv-goals : Help Pyenv venv goals***
 help-pyenv-venv-goals:
 	@echo -e "Pyenv Venv Goals:"
-	@echo -e "\t${TEXT_GREEN}show-pyenv-venv${RESET_FORMATTING}\t\t show available virtual environments for pyenv use"
-	@echo -e "\t${TEXT_GREEN}create-pyenv-venv${RESET_FORMATTING}\t create virtual environment for pyenv use"
-	@echo -e "\t${TEXT_GREEN}destroy-pyenv-venv${RESET_FORMATTING}\t destroy virtual environment for pyenv use"
+	@echo -e "\t${TEXT_GREEN}show-pyenv-venv${RESET_FORMATTING}\t\t\t show available virtual environments for pyenv use"
+	@echo -e "\t${TEXT_GREEN}create-pyenv-venv${RESET_FORMATTING}\t\t create virtual environment for pyenv use"
+	@echo -e "\t${TEXT_GREEN}destroy-pyenv-venv${RESET_FORMATTING}\t\t destroy virtual environment for pyenv use"
 
 
 
@@ -1027,6 +1033,8 @@ create-venv-common:
 
 	@$(MAKE_CMD) info-venv-active-template
 
+	@$(MAKE_CMD) info-upgrade-pip-template
+
 
 
 # *** create-venv : create virtual environment for venv use***
@@ -1110,9 +1118,9 @@ destroy-venv:
 # *** help-general-goals : General goals ***
 help-general-goals:
 	@echo -e "General Goals:"
-	@echo -e "\t${TEXT_GREEN}info${RESET_FORMATTING}\t\t\t show project info"
-	@echo -e "\t${TEXT_GREEN}clean${RESET_FORMATTING}\t\t\t cleanup all temporary files"
-	@echo -e "\t${TEXT_GREEN}freeze ${RESET_FORMATTING}\t\t\t write the requirements to file"
+	@echo -e "\t${TEXT_GREEN}info${RESET_FORMATTING}\t\t\t\t show project info"
+	@echo -e "\t${TEXT_GREEN}clean${RESET_FORMATTING}\t\t\t\t cleanup all temporary files"
+	@echo -e "\t${TEXT_GREEN}freeze ${RESET_FORMATTING}\t\t\t\t write the requirements to file"
 
 
 
@@ -1193,7 +1201,7 @@ run: clean
 # *** help-test-goals : Test goals ***
 help-test-goals:
 	@echo -e "Test Goals:"
-	@echo -e "\t${TEXT_GREEN}install-test-technology-stack${RESET_FORMATTING}\t\t\t install the testing technology stack selected for the version of Python used"
+	@echo -e "\t${TEXT_GREEN}install-test-technology-stack${RESET_FORMATTING}\t install the testing technology stack selected for the version of Python used"
 
 
 
@@ -1256,7 +1264,7 @@ test:
 # *** help-qa-goals : QA goals ***
 help-qa-goals:
 	@echo -e "QA Goals:"
-	@echo -e "\t${TEXT_GREEN}install-qa-technology-stack${RESET_FORMATTING}\t\t\t install the QA technology stack selected for the version of Python used"
+	@echo -e "\t${TEXT_GREEN}install-qa-technology-stack${RESET_FORMATTING}\t install the QA technology stack selected for the version of Python used"
 	@echo -e "\t${TEXT_GREEN}xxx${RESET_FORMATTING}\t\t\t xxx"
 
 
@@ -1387,8 +1395,8 @@ lint:
 # *** help-docker-goals : Docker goals ***
 help-docker-goals:
 	@echo -e "Docker Goals:"
-	@echo -e "\t${TEXT_GREEN}clean-docker${RESET_FORMATTING}\t\t\t\t xxx"
-	@echo -e "\t${TEXT_GREEN}build-docker-dev${RESET_FORMATTING}\t\t\t xxx"
+	@echo -e "\t${TEXT_GREEN}clean-docker${RESET_FORMATTING}\t\t\t xxx"
+	@echo -e "\t${TEXT_GREEN}build-docker-dev${RESET_FORMATTING}\t\t xxx"
 
 
 
