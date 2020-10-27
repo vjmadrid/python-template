@@ -30,13 +30,6 @@ IMAGE_PYTHON_DEV=3.9.0-buster
 # 			Makefile Setup
 # **********************************
 
-# Makefile Execution
-#	* EXECUTION_INIT_DATE_MILISECONDS : Variable containing the start date of the Makefile execution in milliseconds
-
-EXECUTION_INIT_DATE_MILISECONDS := $$(date +%s)
-
-
-
 # Text Format
 #	* Variables containing the constant values of the text format 
 
@@ -137,6 +130,15 @@ PYTHON_PATH := $(shell which python)
 PYTHON_VERSION :=  $(shell python --version)
 PYTHON_VERSION_NUMBER := $(shell python -c "import platform; print(platform.python_version())")
 PYTHON_VERSION_CODE:= $(subst .,,$(PYTHON_VERSION_NUMBER))
+
+
+
+# Pip Settings
+#	* PIP_PATH 				: Variable containing the installed Pip path in the system
+#	* PIP_VERSION 			: Variable containing the version of Pip installed in the system (pip + Version)
+
+PIP_PATH := $(shell which pip)
+PIP_VERSION :=  $(shell pip --version)
 
 
 
@@ -339,6 +341,8 @@ else
 	@echo "EXTERNO FAILED"
 endif
 
+
+
 # **********************************
 # check_environment_variable
 # 	* Check if environment variable exist
@@ -351,21 +355,38 @@ endif
 
 check_environment_variable:
 ifdef $(ARG_ENV_VAR)
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]\t* Check $(ARG_ENV_VAR) Environment Var -> ${TEXT_GREEN}$($(ARG_ENV_VAR))${RESET_FORMATTING}"
+
+# Define description text
+ifeq ($(ARG_TEXT),)
+	$(eval DESCRIPTION := "\t* Check $(ARG_ENV_VAR) Environment Var -> ")
 else
-	
+	$(eval DESCRIPTION := $(ARG_TEXT))
+endif
+
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] $(DESCRIPTION) ${TEXT_GREEN}$($(ARG_ENV_VAR))${RESET_FORMATTING}"
+else
+
+# Define description text
+ifeq ($(ARG_TEXT),)
+	$(eval DESCRIPTION := "\t* Check $(ARG_ENV_VAR) Environment Var -> ")
+else
+	$(eval DESCRIPTION := $(ARG_TEXT))
+endif
+
 ifeq ($(ARG_TYPE),ERROR)
-	@echo -e "[${TEXT_RED}ERROR${RESET_FORMATTING}]\t* Check $(ARG_ENV_VAR) Environment Var -> ${TEXT_RED}$(ARG_ENV_VAR) is undefined${RESET_FORMATTING}"
+	@echo -e "[${TEXT_RED}ERROR${RESET_FORMATTING}] $(DESCRIPTION) ${TEXT_RED}$(ARG_ENV_VAR) is undefined${RESET_FORMATTING}"
 	@exit 1
 endif
 
 ifeq ($(ARG_TYPE),WARN)
-	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}]\t* Check $(ARG_ENV_VAR) Environment Var -> ${TEXT_YELLOW}$(ARG_ENV_VAR) is undefined${RESET_FORMATTING}"
+	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}] $(DESCRIPTION) ${TEXT_YELLOW}$(ARG_ENV_VAR) is undefined${RESET_FORMATTING}"
 else
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]\t* Check $(ARG_ENV_VAR) Environment Var -> ${TEXT_GREEN}$(ARG_ENV_VAR) is undefined${RESET_FORMATTING}"
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] $(DESCRIPTION) ${TEXT_GREEN}$(ARG_ENV_VAR) is undefined${RESET_FORMATTING}"
 endif
 
 endif
+
+
 
 # **********************************
 # check_argument
@@ -410,6 +431,45 @@ else
 
 endif
 
+
+
+# **********************************
+# check_variable
+#	* check if variable exist
+# 	* Checks if the required parameter is passed ARG_TEXT
+#	* required parameter ARG_TEXT_VALUE
+# **********************************
+
+
+check_variable:
+ifeq ($(ARG_PARAMETER),)
+
+ifeq ($(ARG_TEXT),)
+	$(eval DESCRIPTION := "\t* Check ARG_PARAMETER Argument ->")
+else
+	$(eval DESCRIPTION := $(ARG_TEXT))
+endif
+
+	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}] $(DESCRIPTION) ${TEXT_YELLOW}ARG_PARAMETER is undefined${RESET_FORMATTING}"
+else
+
+ifeq ($(ARG_TEXT),)
+	$(eval DESCRIPTION := "\t* Check $(ARG_PARAMETER) Argument ->")
+else
+	$(eval DESCRIPTION := $(ARG_TEXT))
+endif
+
+ifeq ($($(ARG_PARAMETER)),)
+	@echo -e "[${TEXT_RED}ERROR${RESET_FORMATTING}] $(DESCRIPTION) ${TEXT_RED}$(ARG_TEXT_VALUE) is not installed${RESET_FORMATTING}"
+	exit 1
+else
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] $(DESCRIPTION) ${TEXT_GREEN}$(ARG_TEXT_VALUE) is installed${RESET_FORMATTING}"
+endif
+	
+endif
+
+
+
 # *****************************************************
 #	  _____                    _       _            
 # 	 |_   _|__ _ __ ___  _ __ | | __ _| |_ ___  ___ 
@@ -425,6 +485,7 @@ endif
 # **********************************
 
 initial-template:
+	$(shell date '+%s' > _time_.txt)
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Scanning for project..."
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] ---< ${TEXT_CYAN}${PROJECT_NAME}${RESET_FORMATTING} >---"
@@ -434,6 +495,8 @@ initial-template:
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] ------------------------------------------------------------------------"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+
+
 
 # **********************************
 # end-template
@@ -445,19 +508,19 @@ initial-template:
 # 	* EXECUTION_INIT_DATE_MILISECONDS : Variable containing the end date of the Makefile execution in milliseconds
 
 EXECUTION_END_DATE := $(shell date)
-EXECUTION_END_DATE_MILISECONDS := $$(date +%s)
+EXECUTION_END_DATE_MILISECONDS := $(shell date '+%s')
 
 end-template:
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]" 
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] ------------------------------------------------------------------------"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] ${TEXT_GREEN}BUILD SUCCESS${RESET_FORMATTING}"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] ------------------------------------------------------------------------"
-
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Init : $(EXECUTION_INIT_DATE_MILISECONDS) s"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] End : $(EXECUTION_END_DATE_MILISECONDS) s"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Total time: $$((EXECUTION_END_DATE_MILISECONDS-EXECUTION_INIT_DATE_MILISECONDS)) s"
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Total time: $$(($$(date +%s)-$(shell cat _time_.txt))) s"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Finished at: $(EXECUTION_END_DATE)"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] ------------------------------------------------------------------------"
+	$(shell rm _time_.txt)
+
+
 
 # **********************************
 # initial-goal-template
@@ -471,6 +534,8 @@ else
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] --- ${TEXT_GREEN}makefile:$(ARG_GOAL)${RESET_FORMATTING} ${BOLD}($(ARG_GOAL))${RESET_FORMATTING} ---"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
 endif
+
+
 
 # **********************************
 # full-template
@@ -487,6 +552,36 @@ else
 endif
 
 
+# **********************************
+# text-template
+#	* Template that allows you to display a text in the established format
+#	* Allows you to add an empty line at the front and back
+# **********************************
+
+text-template:
+ifeq ($(ARG_ACTIVE_BEFORE),)
+	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}]\t* Check ARG_ACTIVE_BEFORE Argument -> ${TEXT_YELLOW}ARG_ACTIVE_BEFORE is undefined${RESET_FORMATTING}"
+else
+ifeq ($(ARG_ACTIVE_BEFORE),True)
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+endif
+endif
+
+ifeq ($(ARG_TXT),)
+	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}]\t* Check ARG_TXT Argument -> ${TEXT_YELLOW}ARG_TXT is undefined${RESET_FORMATTING}"
+else
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] $(ARG_TXT)"
+endif
+
+ifeq ($(ARG_ACTIVE_AFTER),)
+	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}]\t* Check ARG_ACTIVE_AFTER Argument -> ${TEXT_YELLOW}ARG_ACTIVE_AFTER is undefined${RESET_FORMATTING}"
+else
+ifeq ($(ARG_ACTIVE_AFTER),True)
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+endif
+endif
+
+
 
 # *****************************************
 # 			 ___        __       
@@ -499,58 +594,50 @@ endif
 
 # **********************************
 # help
-#	* how help info
+#	* show help goals info
 # **********************************
 
 help:
 	@echo -e ""
-	@echo -e "Usage: make [<goal>]"
+	@echo -e "Usage: ${TEXT_GREEN}make [<goal>]${RESET_FORMATTING}"
 	@echo -e ""
-	@echo -e "\t${TEXT_GREEN}info${RESET_FORMATTING}\t\t\t\t show ALL info"
+	@echo -e "\t${TEXT_GREEN}help${RESET_FORMATTING}\t\t\t show ${TEXT_BLUE}all help goals${RESET_FORMATTING} info"
+	@echo -e "\t${TEXT_GREEN}help-info${RESET_FORMATTING}\t\t show ${TEXT_BLUE}all info goals${RESET_FORMATTING} info"
 	@echo -e ""
-	@$(MAKE_CMD) help-os-goals
+	@echo -e "Prepare Project Goals"
 	@echo -e ""
-	@$(MAKE_CMD) help-python-goals
+	@echo -e "\t${TEXT_GREEN}help-os-goals${RESET_FORMATTING}\t\t show ${TEXT_BLUE}OS goals${RESET_FORMATTING} info"
+	@echo -e "\t${TEXT_GREEN}help-python-goals${RESET_FORMATTING}\t show ${TEXT_BLUE}Python goals${RESET_FORMATTING} info"
+	@echo -e "\t${TEXT_GREEN}help-pyenv-goals${RESET_FORMATTING}\t show ${TEXT_BLUE}Pyenv goals${RESET_FORMATTING} info"
+	@echo -e "\t${TEXT_GREEN}help-pyenv-venv-goals${RESET_FORMATTING}\t show ${TEXT_BLUE}Pyenv Env goals${RESET_FORMATTING} info"
+	@echo -e "\t${TEXT_GREEN}help-venv-goals${RESET_FORMATTING}\t\t show ${TEXT_BLUE}Venv goals${RESET_FORMATTING} info"
 	@echo -e ""
-	@$(MAKE_CMD) help-pyenv-goals
+	@echo -e "Project Goals"
 	@echo -e ""
-	@$(MAKE_CMD) help-pyenv-venv-goals
+	@echo -e "\t${TEXT_GREEN}help-general-goals${RESET_FORMATTING}\t show ${TEXT_BLUE}General Actions goals${RESET_FORMATTING} info"
+	@echo -e "\t${TEXT_GREEN}help-test-goals${RESET_FORMATTING}\t\t show ${TEXT_BLUE}Test Actions goals${RESET_FORMATTING} info"
+	@echo -e "\t${TEXT_GREEN}help-qa-goals${RESET_FORMATTING}\t\t show ${TEXT_BLUE}QA Actions goals${RESET_FORMATTING} info"
+	@echo -e "\t${TEXT_GREEN}help-docker-goals${RESET_FORMATTING}\t show ${TEXT_BLUE}Docker Actions goals${RESET_FORMATTING} info"
 	@echo -e ""
-	@$(MAKE_CMD) help-venv-goals
-	@echo -e ""
-	@$(MAKE_CMD) help-general-goals
-	@echo -e ""
-	@$(MAKE_CMD) help-test-goals
-	@echo -e ""
-	@$(MAKE_CMD) help-qa-goals
-	@echo -e ""
-	@$(MAKE_CMD) help-docker-goals 
-	@echo -e ""
+
+
 
 # **********************************
-# 		info
+# help-info
+#	* show type goal info
 # **********************************
 
-info-common:
-	@$(MAKE_CMD) initial-goal-template ARG_GOAL=info
-
-	@$(MAKE_CMD) info-os-template
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-
-	@$(MAKE_CMD) info-python-template
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	
-	@$(MAKE_CMD) info-venv-template
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	
-	@$(MAKE_CMD) info-pyenv-template
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	
-	@$(MAKE_CMD) info-docker-template
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-
-info: 
-	@$(MAKE_CMD) full-template ARG_COMMON_PART=info-common
+help-info:
+	@echo -e ""
+	@echo -e "Usage: ${TEXT_GREEN}make [<info-goal>]${RESET_FORMATTING}"
+	@echo -e ""
+	@echo -e "Prepare Project Info Goals"
+	@echo -e ""
+	@echo -e "\t${TEXT_GREEN}info-os${RESET_FORMATTING}\t\t\t show ${TEXT_BLUE}OS${RESET_FORMATTING} info"
+	@echo -e "\t${TEXT_GREEN}info-python${RESET_FORMATTING}\t\t show ${TEXT_BLUE}Python${RESET_FORMATTING} info"
+	@echo -e "\t${TEXT_GREEN}info-pyenv${RESET_FORMATTING}\t\t show ${TEXT_BLUE}Pyenv${RESET_FORMATTING} info"
+	@echo -e "\t${TEXT_GREEN}info-venv${RESET_FORMATTING}\t\t show ${TEXT_BLUE}Venv${RESET_FORMATTING} info"
+	@echo -e ""
 
 
 
@@ -570,25 +657,50 @@ info:
 # **********************************
 
 help-os-goals:
-	@echo -e "OS Goals:"
-	@echo -e "\t${TEXT_GREEN}info-os${RESET_FORMATTING}\t\t\t\t show OS information"
+	@echo -e ""
+	@echo -e "Usage: ${TEXT_GREEN}make [<os-goal>]${RESET_FORMATTING}"
+	@echo -e ""
+	@echo -e "OS Goals"
+	@echo -e ""
+	@echo -e "\t${TEXT_GREEN}info-os${RESET_FORMATTING}\t\t\t show ${TEXT_BLUE}OS${RESET_FORMATTING} information"
+	@echo -e "\t${TEXT_GREEN}info-shell${RESET_FORMATTING}\t\t show ${TEXT_BLUE}Shell${RESET_FORMATTING} information"
+	@echo -e ""
+
+
 
 # **********************************
 # info-os 
-#	* OS Setting Info
+#	* show OS Setting Info
 # **********************************
 
 info-os-common:
 	@$(MAKE_CMD) initial-goal-template ARG_GOAL=info-os
-	
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] OS Settings"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] - Shell \t\t: ${TEXT_GREEN}$(SHELL)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] - Shell File \t: ${TEXT_GREEN}$(SHELL_FILE)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] - OS \t\t: ${TEXT_GREEN}$(OS_DETECTED)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] - CCFLAGS \t: ${TEXT_GREEN}$(CCFLAGS)${RESET_FORMATTING}"
+
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False  ARG_TXT="OS Settings"
+
+	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=OS_DETECTED ARG_TYPE=WARN ARG_TEXT=" - OS \t\t:"
+	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=CCFLAGS ARG_TYPE=WARN ARG_TEXT=" - CCFLAGS \t:"
 
 info-os: 
 	@$(MAKE_CMD) full-template ARG_COMMON_PART=info-os-common
+
+
+
+# **********************************
+# info-shell 
+#	* show Shell Setting Info
+# **********************************
+
+info-shell-common:
+	@$(MAKE_CMD) initial-goal-template ARG_GOAL=info-shell
+
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False  ARG_TXT="Shell Settings"
+
+	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=SHELL ARG_TYPE=WARN ARG_TEXT=" - Shell \t\t:"
+	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=SHELL_FILE ARG_TYPE=WARN ARG_TEXT=" - Shell File \t:"
+
+info-shell: 
+	@$(MAKE_CMD) full-template ARG_COMMON_PART=info-shell-common
 
 
 
@@ -608,26 +720,88 @@ info-os:
 # **********************************
 
 help-python-goals:
-	@echo -e "Python Goals:"
-	@echo -e "\t${TEXT_GREEN}info-python${RESET_FORMATTING}\t\t\t show python information"
-	@echo -e "\t${TEXT_GREEN}upgrade-pip${RESET_FORMATTING}\t\t\t upgrade pip"
+	@echo -e ""
+	@echo -e "Usage: ${TEXT_GREEN}make [<python-goal>]${RESET_FORMATTING}"
+	@echo -e ""
+	@echo -e "Python Goals"
+	@echo -e ""
+	@echo -e "\t${TEXT_GREEN}check-python${RESET_FORMATTING}\t\t check the validity of the execution environment for the use of ${TEXT_BLUE}Python${RESET_FORMATTING}"
+	@echo -e "\t${TEXT_GREEN}info-python${RESET_FORMATTING}\t\t show ${TEXT_BLUE}Python${RESET_FORMATTING} information"
+	@echo -e ""
+	@echo -e "Pip Goals"
+	@echo -e ""
+	@echo -e "\t${TEXT_GREEN}info-pip${RESET_FORMATTING}\t\t show ${TEXT_BLUE}Python${RESET_FORMATTING} information"
+	@echo -e "\t${TEXT_GREEN}upgrade-pip${RESET_FORMATTING}\t\t upgrade ${TEXT_BLUE}Pip${RESET_FORMATTING}"
+	@echo -e ""
+
+
+
+# **********************************
+# check-python
+#	* check the validity of the execution environment for the use of Python
+#		Check Python installation
+# **********************************
+
+check-python-common:
+	@$(MAKE_CMD) initial-goal-template ARG_GOAL=check-python
+
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=True  ARG_TXT="Check Python Installation :" 
+
+	@$(MAKE_CMD) check_variable ARG_PARAMETER=PYTHON_PATH ARG_TEXT="\t* Check Python Path \t->" ARG_TEXT_VALUE="Python"
+	@$(MAKE_CMD) check_variable ARG_PARAMETER=PIP_PATH ARG_TEXT="\t* Check Pip Path \t->" ARG_TEXT_VALUE="Pip"
+	
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Results :"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False  ARG_TXT="The execution environment for the use of Python is ${TEXT_GREEN}SUCCESS${RESET_FORMATTING}"
+
+check-python:
+	@$(MAKE_CMD) full-template ARG_COMMON_PART=check-python-common
+
+
+
+# **********************************
+# info-pip
+#	* pip Setting Info
+#	* previously executed : check-python-common
+# **********************************
+
+info-pip-common:
+	@$(MAKE_CMD) check-python-common
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+
+	@$(MAKE_CMD) initial-goal-template ARG_GOAL=info-pip
+
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False  ARG_TXT="Pip Settings"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False  ARG_TXT="- Pip Path \t\t: ${TEXT_GREEN}$(PIP_PATH)${RESET_FORMATTING}"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False  ARG_TXT="- Pip Version \t\t: ${TEXT_GREEN}$(PIP_VERSION)${RESET_FORMATTING}"
+
+info-pip: 
+	@$(MAKE_CMD) full-template ARG_COMMON_PART=info-pip-common
+
+
 
 # **********************************
 # info-python
-#	* Goal OS Setting Info
+#	* python Setting Info
+#	* previously executed : check-python-common
 # **********************************
 
 info-python-common:
+	@$(MAKE_CMD) check-python-common
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+
 	@$(MAKE_CMD) initial-goal-template ARG_GOAL=info-python
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Python Settings"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] - Python Path \t\t\t: ${TEXT_GREEN}$(PYTHON_PATH)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] - Python Version \t\t: ${TEXT_GREEN}$(PYTHON_VERSION)${RESET_FORMATTING}"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False  ARG_TXT="Python Settings"
+	
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] - Python Path \t\t: ${TEXT_GREEN}$(PYTHON_PATH)${RESET_FORMATTING}"
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] - Python Version \t: ${TEXT_GREEN}$(PYTHON_VERSION)${RESET_FORMATTING}"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] - Python Version Number \t: ${TEXT_GREEN}$(PYTHON_VERSION_NUMBER)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] - Python Version Code \t\t: ${TEXT_GREEN}$(PYTHON_VERSION_CODE)${RESET_FORMATTING}"
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] - Python Version Code \t: ${TEXT_GREEN}$(PYTHON_VERSION_CODE)${RESET_FORMATTING}"
 
 info-python: 
 	@$(MAKE_CMD) full-template ARG_COMMON_PART=info-python-common
+
+
 
 # **********************************
 # upgrade-pip
@@ -635,16 +809,17 @@ info-python:
 # **********************************
 
 info-upgrade-pip-template:
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] To Upgrade pip in your local shell require manual run :"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]\t${TEXT_GREEN}$(PACKAGE_CMD) install --upgrade $(PACKAGE_TOOL)${RESET_FORMATTING}"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True ARG_TXT="To Upgrade pip in your local shell require manual run :"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False ARG_TXT="\t${TEXT_GREEN}$(PACKAGE_CMD) install --upgrade $(PACKAGE_TOOL)${RESET_FORMATTING}"  
 
-upgrade-pip:
+upgrade-pip-common:
 	@$(MAKE_CMD) initial-goal-template ARG_GOAL=upgrade-pip
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Upgrade pip -> ${TEXT_GREEN}$(PACKAGE_CMD) install --upgrade $(PACKAGE_TOOL)${RESET_FORMATTING}"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=True  ARG_TXT="Upgrade pip -> ${TEXT_GREEN}$(PACKAGE_CMD) install --upgrade $(PACKAGE_TOOL)${RESET_FORMATTING}"
 	@$(PACKAGE_CMD) install --upgrade $(PACKAGE_TOOL)
+
+upgrade-pip:
+	@$(MAKE_CMD) full-template ARG_COMMON_PART=upgrade-pip-common
 
 
 
@@ -664,9 +839,52 @@ upgrade-pip:
 # **********************************
 
 help-pyenv-goals:
-	@echo -e "Pyenv Goals:"
-	@echo -e "\t${TEXT_GREEN}info-pyenv${RESET_FORMATTING}\t\t\t show pyenv information"
-	@echo -e "\t${TEXT_GREEN}check-pyenv${RESET_FORMATTING}\t\t\t check the validity of the execution environment for the use of pyenv"
+	@echo -e ""
+	@echo -e "Usage: ${TEXT_GREEN}make [<pyenv-goal>]${RESET_FORMATTING}"
+	@echo -e ""
+	@echo -e "Pyenv Goals"
+	@echo -e ""
+	@echo -e "\t${TEXT_GREEN}check-pyenv${RESET_FORMATTING}\t\t check the validity of the execution environment for the use of ${TEXT_BLUE}Pyenv${RESET_FORMATTING}"
+	@echo -e "\t${TEXT_GREEN}info-pyenv${RESET_FORMATTING}\t\t show ${TEXT_BLUE}Pyenv${RESET_FORMATTING} information"
+	@echo -e ""
+
+
+
+# **********************************
+# check-pyenv
+#	* check the validity of the execution environment for the use of pyenv
+# **********************************
+
+check-pyenv-common:
+	@$(MAKE_CMD) initial-goal-template ARG_GOAL=check-pyenv
+
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=True  ARG_TXT="Check environment variables :" 
+
+	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=PYENV_ROOT ARG_TYPE=ERROR
+	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=PYENV_SHELL ARG_TYPE=ERROR
+	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=PYENV_VERSION ARG_TYPE=WARN
+
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True ARG_TXT="Results :"
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] ${TEXT_GREEN}The execution environment for the use of pyenv is SUCCESS${RESET_FORMATTING}"
+
+check-pyenv:
+	@$(MAKE_CMD) full-template ARG_COMMON_PART=check-pyenv-common
+
+
+
+# **********************************
+# 		info-pyenv
+# **********************************
+
+info-pyenv-template-general-settings:
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False  ARG_TXT="General Settings"
+
+	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=PYENV_ROOT ARG_TYPE=WARN ARG_TEXT=' - PYENV_ROOT \\t\\t\\t:'
+	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=PYENV_VERSION ARG_TYPE=WARN ARG_TEXT=' - PYENV_VERSION \\t\\t\\t:'
+	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=PYENV_SHELL ARG_TYPE=WARN ARG_TEXT=' - PYENV_SHELL \\t\\t\\t:'
+	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=PYENV_VIRTUALENV_INIT ARG_TYPE=WARN ARG_TEXT=' - PYENV_VIRTUALENV_INIT \\t\\t:'
+
+
 
 # **********************************
 # help-pyenv-venv-goals
@@ -674,21 +892,18 @@ help-pyenv-goals:
 # **********************************
 
 help-pyenv-venv-goals:
-	@echo -e "Pyenv Venv Goals:"
+	@echo -e ""
+	@echo -e "Usage: ${TEXT_GREEN}make [<pyenv-env-goal>]${RESET_FORMATTING}"
+	@echo -e ""
+	@echo -e "Pyenv Env Goals"
+	@echo -e ""
 	@echo -e "\t${TEXT_GREEN}show-pyenv-venv${RESET_FORMATTING}\t\t\t show available virtual environments for pyenv use"
 	@echo -e "\t${TEXT_GREEN}create-pyenv-venv${RESET_FORMATTING}\t\t create virtual environment for pyenv use"
 	@echo -e "\t${TEXT_GREEN}destroy-pyenv-venv${RESET_FORMATTING}\t\t destroy virtual environment for pyenv use"
+	@echo -e ""
 
-# **********************************
-# 		info-pyenv
-# **********************************
 
-info-pyenv-template-general-settings:
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] General Settings"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] - PYENV_ROOT \t\t\t: ${TEXT_GREEN}$(PYENV_ROOT)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] - PYENV_VERSION \t\t: ${TEXT_GREEN}$(PYENV_VERSION)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] - PYENV_SHELL \t\t\t: ${TEXT_GREEN}$(PYENV_SHELL)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] - PYENV_VIRTUALENV_INIT \t: ${TEXT_GREEN}$(PYENV_VIRTUALENV_INIT)${RESET_FORMATTING}"
+
 
 info-pyenv-template-python-settings:
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Pyenv Python Settings"
@@ -754,28 +969,7 @@ endif
 info-pyenv: 
 	@$(MAKE_CMD) full-template ARG_COMMON_PART=info-pyenv-template
 
-# **********************************
-# check-pyenv
-#	* check the validity of the execution environment for the use of pyenv
-# **********************************
 
-check-pyenv-common:
-	@$(MAKE_CMD) initial-goal-template ARG_GOAL=check-venv-pyenv
-
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Check environment variables :"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-
-	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=PYENV_ROOT ARG_TYPE=ERROR
-	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=PYENV_SHELL ARG_TYPE=ERROR
-	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=PYENV_VERSION ARG_TYPE=WARN
-
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Results :"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] ${TEXT_GREEN}The execution environment for the use of pyenv is SUCCESS${RESET_FORMATTING}"
-
-check-pyenv:
-	@$(MAKE_CMD) full-template ARG_COMMON_PART=check-pyenv-common
 
 # **********************************
 # 		show-pyenv-venv
@@ -791,14 +985,11 @@ show-pyenv-venv:
 
 	@$(MAKE_CMD) initial-goal-template ARG_GOAL=show-pyenv-venv
 	
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Show Pyenv Virtual Environments \t-> ${TEXT_GREEN}$(PYENV_CMD) virtualenvs${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=True  ARG_TXT="Show Pyenv Virtual Environments \t-> ${TEXT_GREEN}$(PYENV_CMD) virtualenvs${RESET_FORMATTING}"
 	@$(PYENV_CMD) virtualenvs
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Show available Pyenv Virtual Environments  -> ${TEXT_GREEN}ls $(PYENV_ENVS_ACTIVE_PATH)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Show available Pyenv Virtual Environments  -> ${TEXT_GREEN}ls $(PYENV_ENVS_ACTIVE_PATH)${RESET_FORMATTING}"
+	
 ifeq ($(NUM_AVAILABLE_PYENV_ENVIROMENTS),0)
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Pyenv Virtual Environments not exist"
 else
@@ -824,20 +1015,18 @@ endif
 create-pyenv-venv-common:
 	@$(MAKE_CMD) initial-goal-template ARG_GOAL=create-pyenv-venv
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Select Virtual Environment Name -> ${TEXT_GREEN}$(VIRTUAL_ENV_NAME)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=True  ARG_TXT="Select Virtual Environment Name -> ${TEXT_GREEN}$(VIRTUAL_ENV_NAME)${RESET_FORMATTING}"
 	
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Create Pyenv Virtual Environment -> ${TEXT_GREEN}$(PYENV_CMD) ${VIRTUALENV_TOOL} $(PYTHON_VERSION_NUMBER) $(VIRTUAL_ENV_NAME)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=True  ARG_TXT="Create Pyenv Virtual Environment -> ${TEXT_GREEN}$(PYENV_CMD) ${VIRTUALENV_TOOL} $(PYTHON_VERSION_NUMBER) $(VIRTUAL_ENV_NAME)${RESET_FORMATTING}"
 	@$(PYENV_CMD) ${VIRTUALENV_TOOL} $(PYTHON_VERSION_NUMBER) $(VIRTUAL_ENV_NAME)
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] To Activate the Virtual Environment in your local shell require manual run :"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="To Activate the Virtual Environment in your local shell require manual run :"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]\t${TEXT_GREEN}$(PYENV_CMD) activate $(VIRTUAL_ENV_NAME)${RESET_FORMATTING}"
 
 create-pyenv-venv:
 	@$(MAKE_CMD) full-template ARG_COMMON_PART=create-pyenv-venv-common
+
+
 
 # **********************************
 # destroy-pyenv-venv
@@ -847,37 +1036,33 @@ create-pyenv-venv:
 destroy-pyenv-venv-common:
 	@$(MAKE_CMD) initial-goal-template ARG_GOAL=destroy-pyenv-venv
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Show Pyenv Virtual Environment Name -> ${TEXT_GREEN}$(VIRTUAL_ENV_NAME)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=True  ARG_TXT="Show Pyenv Virtual Environment Name -> ${TEXT_GREEN}$(VIRTUAL_ENV_NAME)${RESET_FORMATTING}"
+	
 ifdef PYENV_VERSION
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Show Active Pyenv Virtual Environments \t-> ${TEXT_GREEN}$(PYENV_VERSION)${RESET_FORMATTING}"
-
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] To Deactivate the Virtual Environment in your local shell require manual run :"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False  ARG_TXT="Show Active Pyenv Virtual Environments \t-> ${TEXT_GREEN}$(PYENV_VERSION)${RESET_FORMATTING}"
+	
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="To Deactivate the Virtual Environment in your local shell require manual run :"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]\t${TEXT_GREEN}$(PYENV_CMD) deactivate ${RESET_FORMATTING}"
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Then run this target again :"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Then run this target again :"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]\t${TEXT_GREEN}make destroy-pyenv-venv${RESET_FORMATTING}"
 
 else
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Show Active Pyenv Virtual Environments \t-> ${TEXT_GREEN}Pyenv Virtual Environment is not active${RESET_FORMATTING}"
-
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Uninstall Pyenv Virtual Environment -> ${TEXT_GREEN}$(PYENV_CMD) uninstall -f $(VIRTUAL_ENV_NAME)${RESET_FORMATTING}"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False  ARG_TXT="Show Active Pyenv Virtual Environments \t-> ${TEXT_GREEN}Pyenv Virtual Environment is not active${RESET_FORMATTING}"
+	
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=False  ARG_TXT="Uninstall Pyenv Virtual Environment -> ${TEXT_GREEN}$(PYENV_CMD) uninstall -f $(VIRTUAL_ENV_NAME)${RESET_FORMATTING}"
 	@$(PYENV_CMD) uninstall -f $(VIRTUAL_ENV_NAME)
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Results :"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Results :"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] ${TEXT_GREEN}Destroy Pyenv Virtual Environment is SUCCESS${RESET_FORMATTING}"
 endif
 
 destroy-pyenv-venv:
 	@$(MAKE_CMD) full-template ARG_COMMON_PART=destroy-pyenv-venv-common
+
+
+
+
 
 # *****************************************
 # 		 __     __              
@@ -887,8 +1072,6 @@ destroy-pyenv-venv:
 #    		\_/ \___|_| |_|\_/  
 #
 # *****************************************
-
-
 
 # **********************************
 # help-venv-goals
@@ -902,6 +1085,8 @@ help-venv-goals:
 	@echo -e "\t${TEXT_GREEN}check-venv${RESET_FORMATTING}\t\t\t check the validity of the execution environment for the use of venv"
 	@echo -e "\t${TEXT_GREEN}create-venv${RESET_FORMATTING}\t\t\t create virtual environment for venv use"
 	@echo -e "\t${TEXT_GREEN}destroy-venv${RESET_FORMATTING}\t\t\t destroy virtual environment for venv use"
+
+
 
 # **********************************
 # info-venv
@@ -918,15 +1103,15 @@ info-venv-common:
 info-venv: 
 	@$(MAKE_CMD) full-template ARG_COMMON_PART=info-venv-common
 
+
+
 # **********************************
 # check-venv
 #	* check the validity of the execution environment for the use of venv 
 # **********************************
 
 info-venv-active-template:
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] To Activate the Virtual Environment in your local shell require manual run :"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="To Activate the Virtual Environment in your local shell require manual run :"
 
 ifeq ($(OS_DETECTED),Windows)
     @echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]\tDefault : ${TEXT_GREEN}C:>$(VIRTUAL_ENV_NAME)/Scripts/activate.bat${RESET_FORMATTING}"
@@ -958,11 +1143,9 @@ endif
 		echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}] Check if exist venv directory -> ${TEXT_YELLOW}$(DEFAULT_VIRTUAL_ENV_NAME) NO exist${RESET_FORMATTING}"; \
 	fi \
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Check environment variables :"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Check environment variables :"
 	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=VIRTUAL_ENV ARG_TYPE=WARN
+
 ifndef VIRTUAL_ENV
 
 	@if [ -d "./$(DEFAULT_VIRTUAL_ENV_NAME)" ]; then \
@@ -993,6 +1176,8 @@ endif
 check-venv:
 	@$(MAKE_CMD) full-template ARG_COMMON_PART=check-venv-common
 
+
+
 # **********************************
 # create-venv
 # 	* create virtual environment for venv use
@@ -1001,10 +1186,9 @@ check-venv:
 create-venv-common:
 	@$(MAKE_CMD) initial-goal-template ARG_GOAL=create-venv
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Select Virtual Environment Name -> ${TEXT_GREEN}$(VIRTUAL_ENV_NAME)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=True  ARG_TXT="Select Virtual Environment Name -> ${TEXT_GREEN}$(VIRTUAL_ENV_NAME)${RESET_FORMATTING}"
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Create Venv Virtual Environment -> ${TEXT_GREEN}$(PYTHON_CMD) -m venv $(VIRTUAL_ENV_NAME)${RESET_FORMATTING}"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False  ARG_TXT="Create Venv Virtual Environment -> ${TEXT_GREEN}$(PYTHON_CMD) -m venv $(VIRTUAL_ENV_NAME)${RESET_FORMATTING}"
 	@$(PYTHON_CMD) -m venv $(VIRTUAL_ENV_NAME)
 
 	@$(MAKE_CMD) info-venv-active-template
@@ -1014,6 +1198,8 @@ create-venv-common:
 create-venv:
 	@$(MAKE_CMD) full-template ARG_COMMON_PART=create-venv-common
 
+
+
 # **********************************
 # 		destroy-venv
 # **********************************
@@ -1022,13 +1208,12 @@ create-venv:
 destroy-venv-common:
 	@$(MAKE_CMD) initial-goal-template ARG_GOAL=destroy-venv
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Show Pyenv Virtual Environment Name -> ${TEXT_GREEN}$(VIRTUAL_ENV_NAME)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=True  ARG_TXT="Show Pyenv Virtual Environment Name -> ${TEXT_GREEN}$(VIRTUAL_ENV_NAME)${RESET_FORMATTING}"
 
 ifdef VIRTUAL_ENV
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Show Active Pyenv Virtual Environments \t-> ${TEXT_GREEN}$(VIRTUAL_ENV)${RESET_FORMATTING}"
-
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] To Deactivate the Virtual Environment in your local shell require manual run :"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
 
@@ -1039,9 +1224,7 @@ else
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]\t${TEXT_GREEN}source deactivate${RESET_FORMATTING}"
 endif
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Then run this target again :"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Then run this target again :"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]\t${TEXT_GREEN}make destroy-venv${RESET_FORMATTING}"
 
 else
@@ -1051,15 +1234,16 @@ else
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Delete Venv Virtual Environment -> ${TEXT_GREEN}rm -r $(VIRTUAL_ENV_NAME)/${RESET_FORMATTING}"
 	@rm -r $(VIRTUAL_ENV_NAME)/
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Results :"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Results :"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] ${TEXT_GREEN}Destroy Venv Virtual Environment is SUCCESS${RESET_FORMATTING}"
 endif
 
 # *** destroy-venv : destroy virtual environment for venv use***
 destroy-venv:
 	@$(MAKE_CMD) full-template ARG_COMMON_PART=destroy-venv-common
+
+
+
 
 # *****************************************
 #   		 ____             _     
@@ -1069,8 +1253,6 @@ destroy-venv:
 #  			\____|\___/ \__,_|_|___/
 #                          
 # *****************************************
-
-
 
 # **********************************
 # 		help-general-goals
@@ -1118,6 +1300,7 @@ freeze:
 # **********************************
 # install
 #	* install dependencies from the requirements.txt file
+#	* install the package in a virtual environment
 # **********************************
 
 install-common:
@@ -1154,22 +1337,52 @@ run:
 run-flask-common:
 	@$(MAKE_CMD) initial-goal-template ARG_GOAL=run-flask
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Run Flask -> ${TEXT_GREEN}$(PYTHON_CMD) flask run${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=True  ARG_TXT="Run Flask -> ${TEXT_GREEN}$(PYTHON_CMD) flask run${RESET_FORMATTING}"
 	
 run-flask:
 	@$(MAKE_CMD) full-template ARG_COMMON_PART=run-flask-common
 	@$(PYTHON_CMD) -m flask run
 
 
-#  "    make install    install the package in a virtual environment"
-#  "    make reset      recreate the virtual environment"
-#  "    make check      check coding style (PEP-8, PEP-257)"
-#  "    make test       run the test suite, report coverage"
-#  "    make tox        run the tests on all Python versions"
-#  "    make readme     update usage in readme"
-#  "    make docs       update documentation using Sphinx"
-#  "    make publish    publish changes to GitHub/PyPI"
+
+# **********************************
+# docs
+#	* update documentation using Sphinx
+# **********************************
+
+docs-common:
+	@$(MAKE_CMD) initial-goal-template ARG_GOAL=docs
+
+docs:
+	@$(MAKE_CMD) full-template ARG_COMMON_PART=docs-common
+
+
+
+# **********************************
+# readme
+#	*  update usage in readme
+# **********************************
+
+readme-common:
+	@$(MAKE_CMD) initial-goal-template ARG_GOAL=readme
+
+readme:
+	@$(MAKE_CMD) full-template ARG_COMMON_PART=readme-common
+
+
+
+# **********************************
+# publish
+#	*  publish changes to GitHub/PyPI
+# **********************************
+
+publish-common:
+	@$(MAKE_CMD) initial-goal-template ARG_GOAL=publish
+
+publish:
+	@$(MAKE_CMD) full-template ARG_COMMON_PART=publish-common
+
+
 
 
 
@@ -1206,15 +1419,13 @@ install-test-technology-stack-common:
 
 	@$(MAKE_CMD) initial-goal-template ARG_GOAL=install-test-technology-stack
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Install package "pytest" -> ${TEXT_GREEN}$(PACKAGE_CMD) install pytest${RESET_FORMATTING}"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False  ARG_TXT="Install package "pytest" -> ${TEXT_GREEN}$(PACKAGE_CMD) install pytest${RESET_FORMATTING}"	
 	@$(PACKAGE_CMD) install pytest
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Install package "pytest-xdist" -> ${TEXT_GREEN}$(PACKAGE_CMD) install pytest-xdist${RESET_FORMATTING}"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=False  ARG_TXT="Install package "pytest-xdist" -> ${TEXT_GREEN}$(PACKAGE_CMD) install pytest-xdist${RESET_FORMATTING}"	
 	@$(PACKAGE_CMD) install pytest-xdist
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Install package "pytest-cov" -> ${TEXT_GREEN}$(PACKAGE_CMD) install pytest-cov${RESET_FORMATTING}"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=False  ARG_TXT="Install package "pytest-cov" -> ${TEXT_GREEN}$(PACKAGE_CMD) install pytest-cov${RESET_FORMATTING}"
 	@$(PACKAGE_CMD) install pytest-cov
 
 install-test-technology-stack:
@@ -1224,7 +1435,7 @@ install-test-technology-stack:
 
 # **********************************
 # test
-#	* Test Goal
+#	* run the test suite, report coverage
 # **********************************
 
 
@@ -1238,6 +1449,19 @@ test:
 
 
 
+# **********************************
+# tox
+#	*  run the tests on all Python versions
+# **********************************
+
+tox-common:
+	@$(MAKE_CMD) initial-goal-template ARG_GOAL=tox
+
+tox:
+	@$(MAKE_CMD) full-template ARG_COMMON_PART=tox-common
+
+
+
 # **********************************		
 #		   ___      _    
 #		  / _ \    / \   
@@ -1246,8 +1470,6 @@ test:
 #		  \__\_\/_/   \_\
 #                 
 # **********************************
-
-
 
 # **********************************
 # 		help-qa-goals 
@@ -1262,27 +1484,27 @@ help-qa-goals:
 
 
 # **********************************
-# 	install-qa-technology-stack
+# install-qa-technology-stack
+#	*  Install the QA technology stack selected for the version of Python used
 # **********************************
 
-# *** install-qa-technology-stack : Install the QA technology stack selected for the version of Python used ***
-install-qa-technology-stack:
-	@$(MAKE_CMD) initial-template
+install-qa-technology-stack-common:
 	@$(MAKE_CMD) upgrade-pip
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
 	
 	@$(MAKE_CMD) initial-goal-template ARG_GOAL=install-qa-technology-stack
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Install package "flake8" -> ${TEXT_GREEN}$(PACKAGE_CMD) install flake8${RESET_FORMATTING}"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=False  ARG_TXT="Install package "flake8" -> ${TEXT_GREEN}$(PACKAGE_CMD) install flake8${RESET_FORMATTING}"
 	@$(PACKAGE_CMD) install flake8
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Install package "pylint" -> ${TEXT_GREEN}$(PACKAGE_CMD) install pylint${RESET_FORMATTING}"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=False  ARG_TXT="Install package "pylint" -> ${TEXT_GREEN}$(PACKAGE_CMD) install pylint${RESET_FORMATTING}"
 	@$(PACKAGE_CMD) install pylint
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Install package "bandit" -> ${TEXT_GREEN}$(PACKAGE_CMD) install bandit${RESET_FORMATTING}"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=False  ARG_TXT="Install package "bandit" -> ${TEXT_GREEN}$(PACKAGE_CMD) install bandit${RESET_FORMATTING}"
 	@$(PACKAGE_CMD) install bandit
+
+install-qa-technology-stack:
+	@$(MAKE_CMD) full-template ARG_COMMON_PART=install-qa-technology-stack-common
 
 
 
@@ -1330,11 +1552,12 @@ flake8:
 
 
 # **********************************
-# 		lint
+# check
+#	* check coding style (PEP-8, PEP-257)
 # **********************************
 
-lint-common:
-	@$(MAKE_CMD) initial-goal-template ARG_GOAL=lint
+check-common:
+	@$(MAKE_CMD) initial-goal-template ARG_GOAL=check
 
 	@$(MAKE_CMD) flake8-common
 
@@ -1344,8 +1567,8 @@ lint-common:
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
 	@$(MAKE_CMD) bandit-common
 
-lint:
-	@$(MAKE_CMD) full-template ARG_COMMON_PART=lint-common
+check:
+	@$(MAKE_CMD) full-template ARG_COMMON_PART=check-common
 
 
 
@@ -1357,8 +1580,6 @@ lint:
 #	|____/ \___/ \___|_|\_\___|_|   
 #
 # **********************************
-
-
 
 # **********************************
 # 		help-docker-goals 
@@ -1432,6 +1653,7 @@ clean-docker:
 
 # **********************************
 # build-docker-dev-tool
+#	* build Docker image for DEV TOOL environment
 # **********************************
 
 build-docker-dev-tool-common:
@@ -1439,10 +1661,7 @@ build-docker-dev-tool-common:
 
 	@$(MAKE_CMD) check_file ARG_FILE=$(BASE_DOCKER_FILE_NAME)
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Building Development Tool image with labels -> ${TEXT_GREEN}$(DOCKER_CMD) build -t "$(DOCKER_REGISTRY)/$(BASE_DOCKER_IMAGE_NAME)" -f $(BASE_DOCKER_FILE_NAME) .${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Building Development Tool image with labels -> ${TEXT_GREEN}$(DOCKER_CMD) build -t "$(DOCKER_REGISTRY)/$(BASE_DOCKER_IMAGE_NAME)" -f $(BASE_DOCKER_FILE_NAME) .${RESET_FORMATTING}"
 	@$(DOCKER_CMD) build -t "$(DOCKER_REGISTRY)/$(BASE_DOCKER_IMAGE_NAME)" -f $(BASE_DOCKER_FILE_NAME) .
 
 build-docker-dev-tool:
@@ -1451,17 +1670,15 @@ build-docker-dev-tool:
 
 
 # **********************************
-# 		build-docker-dev
+# build-docker-dev
+#	* build Docker image for DEV environment
 # **********************************
 
 build-docker-dev-use-template:
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Use :"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Use :"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]\t${TEXT_GREEN}make build-docker-dev-sue-template NAME=<NAME> VERSION=<VERSION> ${RESET_FORMATTING}";
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Case :"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Case :"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] make build-docker-dev-sue-template NAME=myproject VERSION=1.0.0"
 
 build-docker-dev-common:
@@ -1469,17 +1686,13 @@ build-docker-dev-common:
 	
 	@$(MAKE_CMD) check_file ARG_FILE=$(DEV_DOCKER_FILE_NAME)
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Prepare $(DEV_DOCKER_FILE_NAME) ->  ${TEXT_GREEN}Update References : $(MODULE) and $(TAG)${RESET_FORMATTING}"
-
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Prepare $(DEV_DOCKER_FILE_NAME) ->  ${TEXT_GREEN}Update References : $(MODULE) and $(TAG)${RESET_FORMATTING}"
 	@sed -i "" \
 		-e "s/{NAME}/$(MODULE)/g" \
 		-e "s/{VERSION}/$(TAG)/g" \
 		$(DEV_DOCKER_FILE_NAME) \
 		
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Building Development image with labels -> ${TEXT_GREEN}$(DOCKER_CMD) build -t $(DEV_DOCKER_IMAGE):$(TAG) -f $(DEV_DOCKER_FILE_NAME) $(DOCKER_BUILD_CONTEXT)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Building Development image with labels -> ${TEXT_GREEN}$(DOCKER_CMD) build -t $(DEV_DOCKER_IMAGE):$(TAG) -f $(DEV_DOCKER_FILE_NAME) $(DOCKER_BUILD_CONTEXT)${RESET_FORMATTING}"
 	@$(DOCKER_CMD) build -t $(DEV_DOCKER_IMAGE):$(TAG) -f $(DEV_DOCKER_FILE_NAME) $(DOCKER_BUILD_CONTEXT)
 
 build-docker-dev:
@@ -1488,31 +1701,27 @@ build-docker-dev:
 
 
 # **********************************
-# 		build-docker-pro
+# build-docker-pro
+#	* build Docker image for PRO environment
 # **********************************
 
-# *** build-docker-pro : Docker goals ***
-build-docker-pro:
-	@$(MAKE_CMD) initial-template
-
+build-docker-pro-common:
 	@$(MAKE_CMD) initial-goal-template ARG_GOAL=build-docker-pro
 
 	@$(MAKE_CMD) check_file ARG_FILE=$(PRO_DOCKER_FILE_NAME)
 	
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Prepare $(PRO_DOCKER_FILE_NAME) ->  ${TEXT_GREEN}Update References : $(MODULE) and $(TAG)${RESET_FORMATTING}"
-	
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Prepare $(PRO_DOCKER_FILE_NAME) ->  ${TEXT_GREEN}Update References : $(MODULE) and $(TAG)${RESET_FORMATTING}"
 	@sed -i "" \
 		-e "s/{NAME}/$(MODULE)/g" \
 		-e "s/{VERSION}/$(TAG)/g" \
 		$(PRO_DOCKER_FILE_NAME) \
-		
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Building Production image with labels -> ${TEXT_GREEN}$(DOCKER_CMD) build -t $(PRO_DOCKER_IMAGE):$(TAG) -f $(PRO_DOCKER_FILE_NAME) $(DOCKER_BUILD_CONTEXT)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Building Production image with labels -> ${TEXT_GREEN}$(DOCKER_CMD) build -t $(PRO_DOCKER_IMAGE):$(TAG) -f $(PRO_DOCKER_FILE_NAME) $(DOCKER_BUILD_CONTEXT)${RESET_FORMATTING}"
 	@$(DOCKER_CMD) build -t $(PRO_DOCKER_IMAGE):$(TAG) -f $(PRO_DOCKER_FILE_NAME) $(DOCKER_BUILD_CONTEXT)
 
-	@$(MAKE_CMD) end-template
+build-docker-pro:
+	@$(MAKE_CMD) full-template ARG_COMMON_PART=build-docker-pro-common
+
 
 
 # *** build-docker-prod : Docker goals ***
@@ -1524,18 +1733,13 @@ build-docker-prod2:
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
 	@$(MAKE_CMD) info-docker-template-build
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Check arguments :"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Check arguments :"
 	@$(MAKE_CMD) check_argument ARG_PARAMETER=NAME
 	@$(MAKE_CMD) check_argument ARG_PARAMETER=VERSION
 
 ifdef NAME
 ifdef VERSION
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Building Development image with labels -> ${TEXT_GREEN}$(DOCKER_CMD) build -t $(DOCKER_IMAGE):$(TAG) -f dev.Dockerfile${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Building Development image with labels -> ${TEXT_GREEN}$(DOCKER_CMD) build -t $(DOCKER_IMAGE):$(TAG) -f dev.Dockerfile${RESET_FORMATTING}"
 
 	#@sed                                 \ 
 	#	-e 's|{NAME}|$(MODULE)|g'        \
@@ -1549,6 +1753,13 @@ else
 endif
 
 
+
+# **********************************
+# shell-docker
+#	* Execute Shell in the containerized build environment
+#	* Example : make shell CMD="-c 'date > datefile'"
+# **********************************
+
 shell-docker:
 	@docker run                     \
 		-ti                         \
@@ -1559,19 +1770,23 @@ shell-docker:
 		$(CMD)
 
 
+
 # **********************************
-# 		push-docker
+# push-docker
+#	* push the image to Docker Registry
+#	* Optional use VERSION ARGUMEN 
+#	* Example : make push VERSION=1.2.3
 # **********************************
 
-# *** push-docker : Docker goals ***
-push-docker:
+push-docker-common:
 	@$(MAKE_CMD) initial-template
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] --- ${TEXT_GREEN}makefile:push-docker${RESET_FORMATTING} ${BOLD}(default-push-docker)${RESET_FORMATTING} @ ${TEXT_CYAN}${MODULE}${RESET_FORMATTING} ---"
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] Pushing image to GitHub Docker Registry -> ${TEXT_GREEN}$(DOCKER_CMD) push $(IMAGE):$(VERSION)${RESET_FORMATTING}"
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True  ARG_TXT="Pushing image to GitHub Docker Registry -> ${TEXT_GREEN}$(DOCKER_CMD) push $(IMAGE):$(VERSION)${RESET_FORMATTING}"
 	@$(DOCKER_CMD) push $(IMAGE):$(VERSION)
+
+push-docker:
+	@$(MAKE_CMD) full-template ARG_COMMON_PART=push-docker-common
 
 
 
