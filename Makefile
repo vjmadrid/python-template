@@ -345,66 +345,164 @@ endif
 
 # **********************************
 # check_environment_variable
+#	* Used in other check operatioons
+# 	* Check if a target environment variable exist
+# 	* ARG_ENV_VAR : Argument Name
+#	* ARG_ACTIVE_EXIT : Argument Value active exit (True / False)
+#
+# Example : 
+#	make check_environment_variable
+#	make check_environment_variable ARG_ENV_VAR="Test_Name"
+#	make check_environment_variable ARG_ENV_VAR="Test_Name" ARG_ACTIVE_EXIT=True
+#	make check_environment_variable ARG_ENV_VAR=OS_DETECTED
+# 	make check_environment_variable ARG_ENV_VAR=PYENV_SHELL
+# **********************************
+
+check_environment_variable:
+
+# ************************
+# * Check Arguments
+# ************************
+
+
+# ************************
+# * Execution
+# ************************
+
+ifndef $(ARG_ENV_VAR)
+	@$(MAKE_CMD) print-type-text-with-part ARG_TYPE=ERROR ARG_TEXT_PART_1="\t* Check $(ARG_ENV_VAR) Environment Variable" ARG_TEXT_PART_2="$(ARG_ENV_VAR) is undefined" ARG_ACTIVE_EXIT=$(ARG_ACTIVE_EXIT)
+endif # ifeq ($(ARG_ENV_VAR),)
+
+	@exit 0
+
+
+
+# **********************************
+# check_target_argument
+#	* Used in other check operatioons
+# 	* Check if a target argument exist
+# 	* ARG_TARGET_NAME : Argument Name
+#	* ARG_TARGET_VALUE : Argument Value
+#
+# Example : 
+#	make check_target_argument
+#	make check_target_argument ARG_TARGET_NAME="Test_Name"
+#	make check_target_argument ARG_TARGET_NAME="Test_Name" ARG_TARGET_VALUE="Test_Value"
+# **********************************
+
+check_target_argument:
+
+	@echo -e "\n*** check_target_argument ***"
+	@echo -e "* ARG_TARGET_NAME :: $(ARG_TARGET_NAME) ***"
+	@echo -e "* ARG_TARGET_VALUE :: $(ARG_TARGET_VALUE) ***"
+
+# ************************
+# * Check Arguments
+# ************************
+
+# CHECK-ARGUMENT : Check if the argument ARG_TARGET_NAME has NO value
+ifeq ($(ARG_TARGET_NAME),)
+	@$(MAKE_CMD) print-type-text-with-part ARG_TYPE=ERROR ARG_TEXT_PART_1="\t* Check ARG_TARGET_NAME Argument" ARG_TEXT_PART_2="ARG_TARGET_NAME is undefined" ARG_ACTIVE_EXIT=True
+endif # ifeq ($(ARG_TARGET_NAME),)
+
+# CHECK-ARGUMENT : Check if the argument ARG_TARGET_VALUE has NO value
+ifeq ($(ARG_TARGET_VALUE),)
+	@$(MAKE_CMD) print-type-text-with-part ARG_TYPE=ERROR ARG_TEXT_PART_1="\t* Check ARG_TARGET_VALUE Argument for $(ARG_TARGET_NAME)" ARG_TEXT_PART_2="ARG_TARGET_VALUE is undefined" ARG_ACTIVE_EXIT=True
+endif # ifeq ($(ARG_TARGET_VALUE),)
+
+# ************************
+# * Execution
+# ************************
+
+	@exit 0
+
+
+
+# **********************************
+# check_target_environment_variable
+#	* Used in other check operatioons
+# 	* Check if a target environment variable exist
+# 	* ARG_ENV_VAR : Argument Name
+#	* ARG_ACTIVE_EXIT : Argument Value active exit (True / False)
+#
+# Example : 
+#	make check_target_environment_variable
+#	make check_target_environment_variable ARG_ENV_VAR="Test_Name"
+#	make check_target_environment_variable ARG_ENV_VAR="Test_Name" ARG_ACTIVE_EXIT=True
+#	make check_target_environment_variable ARG_ENV_VAR=OS_DETECTED
+# 	make check_target_environment_variable ARG_ENV_VAR=PYENV_SHELL
+# **********************************
+
+check_target_environment_variable:
+
+# ************************
+# * Check Arguments
+# ************************
+
+# CHECK-ARGUMENT : Check if the argument ARG_ENV_VAR has NO value
+	@$(MAKE_CMD) check_target_argument ARG_TARGET_NAME=ARG_ENV_VAR ARG_TARGET_VALUE=$(ARG_ENV_VAR)
+
+# ************************
+# * Execution
+# ************************
+
+	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=$(ARG_ENV_VAR) ARG_ACTIVE_EXIT=$(ARG_ACTIVE_EXIT)
+
+	@exit 0
+
+
+
+# **********************************
+# print_environment_variable
 # 	* Check if environment variable exist
 # 	* ARG_ENV_VAR : Environment variable captured by parameter
 #	* ARG_TYPE : Type of behaviour expected in the absence of the environment variable
 #		ERROR	: Error + undefined + exit
 #		WARN	: Warning + undefined
 #		OTHER	: Info + undefined
+# Example : 
+#	make print_environment_variable
+#	make print_environment_variable ARG_ENV_VAR="KK"
+#	make print_environment_variable ARG_ENV_VAR=OS_DETECTED 
+#	make print_environment_variable ARG_ENV_VAR=OS_DETECTED ARG_TYPE=INFO
+# 	make print_environment_variable ARG_ENV_VAR=PYENV_SHELL
 # **********************************
 
-check_environment_variable:
-ifdef $(ARG_ENV_VAR)
+print_environment_variable:
 
-# Define description text
+# ************************
+# * Check Arguments
+# ************************
+
+# Mandatory : Check ARG_ENV_VAR environment variable is undefined
+	@$(MAKE_CMD) check_target_environment_variable ARG_TARGET_NAME=$(ARG_ENV_VAR) ARG_ACTIVE_EXIT=True
+
+# Mandatory : Check ARG_TYPE argument is indefined
+	@$(MAKE_CMD) check_target_argument ARG_TARGET_NAME=ARG_TYPE ARG_TARGET_VALUE=$(ARG_TYPE)
+
+# Optional : Check ARG_TEXT argument is indefined
 ifeq ($(ARG_TEXT),)
-	$(eval DESCRIPTION := "\t* Check $(ARG_ENV_VAR) Environment Var -> ")
+	$(eval DESCRIPTION := "$(ARG_ENV_VAR) Environment Var")
 else
 	$(eval DESCRIPTION := $(ARG_TEXT))
 endif
 
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] $(DESCRIPTION) ${TEXT_GREEN}$($(ARG_ENV_VAR))${RESET_FORMATTING}"
-else
+# ************************
+# * Execution
+# ************************
 
-# Define description text
-ifeq ($(ARG_TEXT),)
-	$(eval DESCRIPTION := "\t* Check $(ARG_ENV_VAR) Environment Var -> ")
-else
-	$(eval DESCRIPTION := $(ARG_TEXT))
-endif
+# Check Error Message Type
+ifneq ($(ARG_TYPE),ERROR)
 
-ifeq ($(ARG_TYPE),ERROR)
-	@echo -e "[${TEXT_RED}ERROR${RESET_FORMATTING}] $(DESCRIPTION) ${TEXT_RED}$(ARG_ENV_VAR) is undefined${RESET_FORMATTING}"
-	@exit 1
-endif
-
+# Check Warning Message Type
 ifeq ($(ARG_TYPE),WARN)
-	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}] $(DESCRIPTION) ${TEXT_YELLOW}$(ARG_ENV_VAR) is undefined${RESET_FORMATTING}"
+	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}]\t* $(DESCRIPTION) -> ${TEXT_YELLOW}$(ARG_ENV_VAR) is defined${RESET_FORMATTING}"
+# Check Information / Default Message Type
 else
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] $(DESCRIPTION) ${TEXT_GREEN}$(ARG_ENV_VAR) is undefined${RESET_FORMATTING}"
-endif
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]\t* $(DESCRIPTION) -> ${TEXT_GREEN}$($(ARG_ENV_VAR))${RESET_FORMATTING}"
+endif # ifeq ($(ARG_TYPE),WARN)
 
-endif
-
-
-
-# **********************************
-# check_argument
-#	* check if argument exist
-# **********************************
-
-check_argument:
-ifeq ($(ARG_PARAMETER),)
-	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}]\t* Check ARG_PARAMETER Argument -> ${TEXT_YELLOW}ARG_PARAMETER is undefined${RESET_FORMATTING}"
-else
-
-ifeq ($($(ARG_PARAMETER)),)
-	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}]\t* Check $(ARG_PARAMETER) Argument -> ${TEXT_YELLOW}$(ARG_PARAMETER) is undefined${RESET_FORMATTING}"
-else
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]\t* Check $(ARG_PARAMETER) Argument -> ${TEXT_GREEN}$($(ARG_PARAMETER))${RESET_FORMATTING}"
-endif
-	
-endif
+endif # ifneq ($(ARG_TYPE),ERROR)
 
 
 
@@ -429,43 +527,6 @@ else
 		exit 1; \
 	fi \
 
-endif
-
-
-
-# **********************************
-# check_variable
-#	* check if variable exist
-# 	* Checks if the required parameter is passed ARG_TEXT
-#	* required parameter ARG_TEXT_VALUE
-# **********************************
-
-
-check_variable:
-ifeq ($(ARG_PARAMETER),)
-
-ifeq ($(ARG_TEXT),)
-	$(eval DESCRIPTION := "\t* Check ARG_PARAMETER Argument ->")
-else
-	$(eval DESCRIPTION := $(ARG_TEXT))
-endif
-
-	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}] $(DESCRIPTION) ${TEXT_YELLOW}ARG_PARAMETER is undefined${RESET_FORMATTING}"
-else
-
-ifeq ($(ARG_TEXT),)
-	$(eval DESCRIPTION := "\t* Check $(ARG_PARAMETER) Argument ->")
-else
-	$(eval DESCRIPTION := $(ARG_TEXT))
-endif
-
-ifeq ($($(ARG_PARAMETER)),)
-	@echo -e "[${TEXT_RED}ERROR${RESET_FORMATTING}] $(DESCRIPTION) ${TEXT_RED}$(ARG_TEXT_VALUE) is not installed${RESET_FORMATTING}"
-	exit 1
-else
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] $(DESCRIPTION) ${TEXT_GREEN}$(ARG_TEXT_VALUE) is installed${RESET_FORMATTING}"
-endif
-	
 endif
 
 
@@ -525,61 +586,240 @@ end-template:
 # **********************************
 # initial-goal-template
 #	* Template shown as a title in the execution of each goal in the Makefile
+#	* ARG_GOAL : Goal Argument
+#
+# Example :
+#	make initial-goal-template 
+#	make initial-goal-template ARG_GOAL=example
 # **********************************
 
 initial-goal-template:
+
+# ************************
+# * Check Arguments
+# ************************
+
+# CHECK-ARGUMENT : Check if the argument ARG_GOAL has NO value
 ifeq ($(ARG_GOAL),)
-	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}]\t* Check ARG_GOAL Argument -> ${TEXT_YELLOW}ARG_GOAL is undefined${RESET_FORMATTING}"
+	@$(MAKE_CMD) print-type-text-with-part ARG_TYPE=ERROR ARG_TEXT_PART_1="\t* Check ARG_GOAL Argument" ARG_TEXT_PART_2="ARG_GOAL is undefined" ARG_ACTIVE_EXIT=True
 else
+	# EXECUTION
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] --- ${TEXT_GREEN}makefile:$(ARG_GOAL)${RESET_FORMATTING} ${BOLD}($(ARG_GOAL))${RESET_FORMATTING} ---"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-endif
+endif # ifeq ($(ARG_GOAL),)
+
+
+
+# **********************************
+# print-type-text
+#	* Template shown as a message
+#   * ARG_TYPE 			: Message Type (ERROR, WARN and INFO (Default))
+#   * ARG_ACTIVE_EXIT 	: Activate boolean output by error
+#   * ARG_TEXT 			: Text to be shown
+#
+# Example : 
+#	make print-type-text ARG_TEXT="ACME test"
+#	make print-type-text ARG_TYPE=INFO ARG_TEXT="ACME test"
+#	make print-type-text ARG_TYPE=ERROR ARG_TEXT="ACME test"
+#	make print-type-text ARG_TYPE=ERROR ARG_TEXT="ACME test" ARG_ACTIVE_EXIT=True
+# 	make print-type-text ARG_TYPE=ERROR ARG_TEXT="ACME test ${TEXT_GREEN}COLOR${RESET_FORMATTING}" -> NO use color
+# **********************************
+
+print-type-text:
+
+# ************************
+# * Check Arguments
+# ************************
+
+# CHECK-ARGUMENT : Check if the argument ARG_TEXT has NO value
+ifeq ($(ARG_TEXT),)
+	@$(MAKE_CMD) print-type-text-with-part ARG_TYPE=ERROR ARG_TEXT_PART_1="\t* Check ARG_TEXT Argument" ARG_TEXT_PART_2="ARG_TEXT is undefined" ARG_ACTIVE_EXIT=True
+endif # ifeq ($(ARG_TEXT),True)
+
+
+# ************************
+# * Execution
+# ************************
+
+# Check Error Message Type
+ifeq ($(ARG_TYPE),ERROR)
+	@echo -e "[${TEXT_RED}ERROR${RESET_FORMATTING}] $(ARG_TEXT)"
+
+# Activate boolean output by error
+ifeq ($(ARG_ACTIVE_EXIT),True)
+	@exit 1
+endif # ifeq ($(ARG_ACTIVE_EXIT),True)
+
+else
+
+# Check Warning Message Type
+ifeq ($(ARG_TYPE),WARN)
+	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}] $(ARG_TEXT)"
+
+# Check Information / Default Message Type
+else
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] $(ARG_TEXT)"
+endif # ifeq ($(ARG_TYPE),WARN)
+
+endif # ifeq ($(ARG_TYPE),ERROR)
+
+
+
+# **********************************
+# print-type-text-with-part
+#	* Template shown as a message
+#   * ARG_TYPE 			: Message Type (ERROR, WARN and INFO (Default))
+#   * ARG_TEXT_PART_1 	: Text to be shown (Part 1)
+#   * ARG_TEXT_PART_2 	: Text to be shown (Part 2)
+#   * ARG_ACTIVE_EXIT 	: Activate boolean output by error
+#
+# Example : 
+# 	make print-type-text-with-part
+# 	make print-type-text-with-part ARG_TYPE=INFO ARG_TEXT_PART_1="PART 1 Test"
+#	make print-type-text-with-part ARG_TYPE=INFO ARG_TEXT_PART_1="PART 1 Test" ARG_TEXT_PART_2="VALUE Test"
+# 	make print-type-text-with-part ARG_TYPE=ERROR ARG_TEXT_PART_1="PART 1 Test" ARG_TEXT_PART_2="VALUE Test"
+# 	make print-type-text-with-part ARG_TYPE=ERROR ARG_TEXT_PART_1="PART 1 Test" ARG_TEXT_PART_2="VALUE Test" ARG_ACTIVE_EXIT=True
+# **********************************
+
+print-type-text-with-part:
+
+# ************************
+# * Check Arguments
+# ************************
+
+# CHECK-ARGUMENT : Check if the argument ARG_TEXT_PART_1 has NO value
+ifeq ($(ARG_TEXT_PART_1),)
+	@$(MAKE_CMD) print-type-text-with-part ARG_TYPE=ERROR ARG_TEXT_PART_1="\t* Check ARG_TEXT_PART_1 Argument" ARG_TEXT_PART_2="ARG_TEXT_PART_1 is undefined" ARG_ACTIVE_EXIT=True
+endif # ifeq ($(ARG_TEXT_PART_1),True)
+
+# CHECK-ARGUMENT : Check if the argument ARG_TEXT_PART_2 has NO value
+ifeq ($(ARG_TEXT_PART_2),)
+	@$(MAKE_CMD) print-type-text-with-part ARG_TYPE=ERROR ARG_TEXT_PART_1="\t* Check ARG_TEXT_PART_2 Argument" ARG_TEXT_PART_2="ARG_TEXT_PART_2 is undefined" ARG_ACTIVE_EXIT=True
+endif # ifeq ($(ARG_TEXT_PART_2),True)
+
+
+# ************************
+# * Execution
+# ************************
+
+# Check Error Message Type
+ifeq ($(ARG_TYPE),ERROR)
+	@echo -e "[${TEXT_RED}ERROR${RESET_FORMATTING}] $(ARG_TEXT_PART_1) -> ${TEXT_RED}$(ARG_TEXT_PART_2)${RESET_FORMATTING}"
+
+# Activate boolean output by error
+ifeq ($(ARG_ACTIVE_EXIT),True)
+	@exit 1
+endif # ifeq ($(ARG_ACTIVE_EXIT),True)
+
+else
+
+# Check Warning Message Type
+ifeq ($(ARG_TYPE),WARN)
+	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}] $(ARG_TEXT_PART_1) -> ${TEXT_YELLOW}$(ARG_TEXT_PART_2)${RESET_FORMATTING}"
+
+# Check Information / Default Message Type
+else
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] $(ARG_TEXT_PART_1) -> ${TEXT_GREEN}$(ARG_TEXT_PART_2)${RESET_FORMATTING}"
+endif # ifeq ($(ARG_TYPE),WARN)
+
+endif # ifeq ($(ARG_TYPE),ERROR)
+
+
+
+# **********************************
+# print-type-text-info
+#	* Template that allows you to display a text in the established format
+#	* Allows you to add an empty line at the front and back
+#	* ARG_ACTIVE_BEFORE 	: Activate Previous information line
+#	* ARG_ACTIVE_AFTER 		: Activate Further information line
+#   * ARG_TEXT 				: Text to be shown
+#
+# Example : 
+#	make print-type-text-info 
+#	make print-type-text-info ARG_ACTIVE_BEFORE=False 
+#	make print-type-text-info ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False 
+#	make print-type-text-info ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False ARG_TEXT="Test Value"
+#	make print-type-text-info ARG_ACTIVE_BEFORE=True ARG_ACTIVE_AFTER=True ARG_TEXT="Test Value"
+# **********************************
+
+print-type-text-info:
+
+# ************************
+# * Check Arguments
+# ************************
+
+# Mandatory : Check ARG_ACTIVE_BEFORE argument is indefined
+	@$(MAKE_CMD) check_target_argument ARG_TARGET_NAME=ARG_ACTIVE_BEFORE ARG_TARGET_VALUE=$(ARG_ACTIVE_BEFORE)
+
+# Mandatory : Check ARG_ACTIVE_AFTER argument is indefined
+	@$(MAKE_CMD) check_target_argument ARG_TARGET_NAME=ARG_ACTIVE_AFTER ARG_TARGET_VALUE=$(ARG_ACTIVE_AFTER)
+
+# Mandatory : Check ARG_TEXT argument is indefined
+	@$(MAKE_CMD) check_target_argument ARG_TARGET_NAME=ARG_TEXT ARG_TARGET_VALUE=$(ARG_TEXT)
+
+
+
+# CHECK-ARGUMENT : Check if the argument ARG_ACTIVE_BEFORE has NO value
+# ifeq ($(ARG_ACTIVE_BEFORE),)
+# 	@$(MAKE_CMD) print-type-text-with-part ARG_TYPE=ERROR ARG_TEXT_PART_1="\t* Check ARG_ACTIVE_BEFORE Argument" ARG_TEXT_PART_2="ARG_ACTIVE_BEFORE is undefined" ARG_ACTIVE_EXIT=True
+# endif # ifeq ($(ARG_ACTIVE_BEFORE),True)
+
+# CHECK-ARGUMENT : Check if the argument ARG_ACTIVE_AFTER has NO value
+# ifeq ($(ARG_ACTIVE_AFTER),)
+# 	@$(MAKE_CMD) print-type-text-with-part ARG_TYPE=ERROR ARG_TEXT_PART_1="\t* Check ARG_ACTIVE_AFTER Argument -> " ARG_TEXT_PART_2="ARG_ACTIVE_AFTER is undefined" ARG_ACTIVE_EXIT=True
+# endif # ifeq ($(ARG_ACTIVE_BEFORE),True)
+
+# CHECK-ARGUMENT : Check if the argument ARG_ACTIVE_AFTER has NO value
+# ifeq ($(ARG_TEXT),)
+# 	@$(MAKE_CMD) print-type-text-with-part ARG_TYPE=ERROR ARG_TEXT_PART_1="\t* Check ARG_TEXT Argument -> " ARG_TEXT_PART_2="ARG_TEXT is undefined" ARG_ACTIVE_EXIT=True
+# endif # ifeq ($(ARG_TEXT),True)
+
+
+# ************************
+# * Execution
+# ************************
+
+# Check if True then add previous info line
+ifeq ($(ARG_ACTIVE_BEFORE),True)
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+endif # ifeq ($(ARG_ACTIVE_BEFORE),True)
+
+# Check if the argument ARG_ACTIVE_BEFORE has value
+ifneq ($(ARG_TEXT),)
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] $(ARG_TEXT)"
+endif # ifneq ($(ARG_TEXT),)
+
+# Check if True then add further info line
+ifeq ($(ARG_ACTIVE_AFTER),True)
+	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
+endif # ifeq ($(ARG_ACTIVE_AFTER),True)
 
 
 
 # **********************************
 # full-template
 #	* Template that displays the full message during the execution of a goal in the Makefile
+#	* ARG_COMMON_PART : Reference to another target / goal
+#
+# Example : 
+#	make full-template 
+#	make full-template ARG_COMMON_PART=te
 # **********************************
 
 full-template:
+
+# ************************
+# * Check Arguments
+# ************************
+
+# CHECK-ARGUMENT : Check if the argument ARG_COMMON_PART has NO value
 ifeq ($(ARG_COMMON_PART),)
-	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}]\t* Check ARG_COMMON_PART Argument -> ${TEXT_YELLOW}ARG_COMMON_PART is undefined${RESET_FORMATTING}"
-else
+	@$(MAKE_CMD) print-type-text-with-part ARG_TYPE=ERROR ARG_TEXT_PART_1="\t* Check ARG_COMMON_PART Argument" ARG_TEXT_PART_2="ARG_COMMON_PART is undefined" ARG_ACTIVE_EXIT=True
+endif # ifeq ($(ARG_COMMON_PART),)
+
 	@$(MAKE_CMD) initial-template
 	@$(MAKE_CMD) $(ARG_COMMON_PART)
 	@$(MAKE_CMD) end-template
-endif
-
-
-# **********************************
-# text-template
-#	* Template that allows you to display a text in the established format
-#	* Allows you to add an empty line at the front and back
-# **********************************
-
-text-template:
-ifeq ($(ARG_ACTIVE_BEFORE),)
-	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}]\t* Check ARG_ACTIVE_BEFORE Argument -> ${TEXT_YELLOW}ARG_ACTIVE_BEFORE is undefined${RESET_FORMATTING}"
-else
-ifeq ($(ARG_ACTIVE_BEFORE),True)
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-endif
-endif
-
-ifeq ($(ARG_TXT),)
-	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}]\t* Check ARG_TXT Argument -> ${TEXT_YELLOW}ARG_TXT is undefined${RESET_FORMATTING}"
-else
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] $(ARG_TXT)"
-endif
-
-ifeq ($(ARG_ACTIVE_AFTER),)
-	@echo -e "[${TEXT_YELLOW}WARN${RESET_FORMATTING}]\t* Check ARG_ACTIVE_AFTER Argument -> ${TEXT_YELLOW}ARG_ACTIVE_AFTER is undefined${RESET_FORMATTING}"
-else
-ifeq ($(ARG_ACTIVE_AFTER),True)
-	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
-endif
-endif
 
 
 
@@ -676,10 +916,10 @@ help-os-goals:
 info-os-common:
 	@$(MAKE_CMD) initial-goal-template ARG_GOAL=info-os
 
-	@$(MAKE_CMD) text-template ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False  ARG_TXT="OS Settings"
+	@$(MAKE_CMD) print-type-text-info ARG_ACTIVE_BEFORE=False ARG_ACTIVE_AFTER=False ARG_TEXT="OS Settings"
 
-	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=OS_DETECTED ARG_TYPE=WARN ARG_TEXT=" - OS \t\t:"
-	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=CCFLAGS ARG_TYPE=WARN ARG_TEXT=" - CCFLAGS \t:"
+	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=OS_DETECTED ARG_TYPE=INFO ARG_TEXT=" - OS \t\t"
+	@$(MAKE_CMD) check_environment_variable ARG_ENV_VAR=CCFLAGS ARG_TYPE=INFO ARG_TEXT=" - CCFLAGS \t"
 
 info-os: 
 	@$(MAKE_CMD) full-template ARG_COMMON_PART=info-os-common
