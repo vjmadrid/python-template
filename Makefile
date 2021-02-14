@@ -12,7 +12,7 @@
 # Last Change: March 1, 2020
 # URL: 
 
-
+DEBUG := True
 
 MODULE := projectx
 
@@ -353,12 +353,23 @@ endif
 # Example : 
 #	make check_environment_variable
 #	make check_environment_variable ARG_ENV_VAR="Test_Name"
+#	make check_environment_variable ARG_ENV_VAR="Test Name With Some Words"
 #	make check_environment_variable ARG_ENV_VAR="Test_Name" ARG_ACTIVE_EXIT=True
 #	make check_environment_variable ARG_ENV_VAR=OS_DETECTED
 # 	make check_environment_variable ARG_ENV_VAR=PYENV_SHELL
 # **********************************
 
 check_environment_variable:
+
+# Print mode debug
+ifeq ($(DEBUG),True)
+	@echo -e "[${TEXT_MAGENTA}DEBUG${RESET_FORMATTING}]"
+	@echo -e "[${TEXT_MAGENTA}DEBUG${RESET_FORMATTING}] ${TEXT_GREEN}check_environment_variable${RESET_FORMATTING} target"
+	@echo -e "[${TEXT_MAGENTA}DEBUG${RESET_FORMATTING}] * ARG_ENV_VAR \t\t:: $(ARG_ENV_VAR)"
+	@echo -e "[${TEXT_MAGENTA}DEBUG${RESET_FORMATTING}] * ARG_ACTIVE_EXIT \t:: $(ARG_ACTIVE_EXIT)"
+	@echo -e "[${TEXT_MAGENTA}DEBUG${RESET_FORMATTING}]"
+endif # ifeq ($(DEBUG),)
+
 
 # ************************
 # * Check Arguments
@@ -388,13 +399,20 @@ endif # ifeq ($(ARG_ENV_VAR),)
 #	make check_target_argument
 #	make check_target_argument ARG_TARGET_NAME="Test_Name"
 #	make check_target_argument ARG_TARGET_NAME="Test_Name" ARG_TARGET_VALUE="Test_Value"
+#	make check_target_argument ARG_TARGET_NAME="Test_Name" ARG_TARGET_VALUE="Test Value"
 # **********************************
 
 check_target_argument:
 
-	@echo -e "\n*** check_target_argument ***"
-	@echo -e "* ARG_TARGET_NAME :: $(ARG_TARGET_NAME) ***"
-	@echo -e "* ARG_TARGET_VALUE :: $(ARG_TARGET_VALUE) ***"
+# Print mode debug
+ifeq ($(DEBUG),True)
+	@echo -e "[${TEXT_MAGENTA}DEBUG${RESET_FORMATTING}]"
+	@echo -e "[${TEXT_MAGENTA}DEBUG${RESET_FORMATTING}] ${TEXT_GREEN}check_target_argument${RESET_FORMATTING} target"
+	@echo -e "[${TEXT_MAGENTA}DEBUG${RESET_FORMATTING}] * ARG_TARGET_NAME \t:: $(ARG_TARGET_NAME)"
+	@echo -e "[${TEXT_MAGENTA}DEBUG${RESET_FORMATTING}] * ARG_TARGET_VALUE \t:: $(ARG_TARGET_VALUE)"
+	@echo -e "[${TEXT_MAGENTA}DEBUG${RESET_FORMATTING}]"
+endif # ifeq ($(DEBUG),)
+
 
 # ************************
 # * Check Arguments
@@ -410,6 +428,7 @@ ifeq ($(ARG_TARGET_VALUE),)
 	@$(MAKE_CMD) print-type-text-with-part ARG_TYPE=ERROR ARG_TEXT_PART_1="\t* Check ARG_TARGET_VALUE Argument for $(ARG_TARGET_NAME)" ARG_TEXT_PART_2="ARG_TARGET_VALUE is undefined" ARG_ACTIVE_EXIT=True
 endif # ifeq ($(ARG_TARGET_VALUE),)
 
+
 # ************************
 # * Execution
 # ************************
@@ -420,7 +439,7 @@ endif # ifeq ($(ARG_TARGET_VALUE),)
 
 # **********************************
 # check_target_environment_variable
-#	* Used in other check operatioons
+#	* Used in other check operations
 # 	* Check if a target environment variable exist
 # 	* ARG_ENV_VAR : Argument Name
 #	* ARG_ACTIVE_EXIT : Argument Value active exit (True / False)
@@ -434,6 +453,13 @@ endif # ifeq ($(ARG_TARGET_VALUE),)
 # **********************************
 
 check_target_environment_variable:
+
+# Print mode debug
+ifeq ($(DEBUG),True)
+	@echo -e "\n[DEBUG] check_target_environment_variable "
+	@echo -e "[DEBUG] * ARG_ENV_VAR \†\t:: $(ARG_ENV_VAR)"
+	@echo -e "[DEBUG] * ARG_ACTIVE_EXIT :: $(ARG_ACTIVE_EXIT)"
+endif # ifeq ($(DEBUG),)
 
 # ************************
 # * Check Arguments
@@ -603,7 +629,7 @@ initial-goal-template:
 ifeq ($(ARG_GOAL),)
 	@$(MAKE_CMD) print-type-text-with-part ARG_TYPE=ERROR ARG_TEXT_PART_1="\t* Check ARG_GOAL Argument" ARG_TEXT_PART_2="ARG_GOAL is undefined" ARG_ACTIVE_EXIT=True
 else
-	# EXECUTION
+# EXECUTION
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}] --- ${TEXT_GREEN}makefile:$(ARG_GOAL)${RESET_FORMATTING} ${BOLD}($(ARG_GOAL))${RESET_FORMATTING} ---"
 	@echo -e "[${TEXT_BLUE}INFO${RESET_FORMATTING}]"
 endif # ifeq ($(ARG_GOAL),)
